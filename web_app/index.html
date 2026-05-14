@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro-ECU Simulator | Premium Console</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="brand"><h1>PRO-ECU</h1></div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div id="status-dot" style="width: 8px; height: 8px; background: #333; border-radius: 50%;"></div>
+                <span id="status-text" style="font-size: 0.6rem; color: #475569; letter-spacing: 1px;">OFFLINE</span>
+            </div>
+            <button id="connect-btn" class="btn-scan">ESCANEAR</button>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <!-- ACELERADOR IZQUIERDA -->
+        <div class="vertical-slider-container">
+            <input type="range" id="rpm-slider" class="vertical-slider" min="0" max="8000" value="1050">
+        </div>
+
+        <!-- PANEL DE CONTROL -->
+        <div class="side-panel">
+            <div class="premium-card">
+                <div class="card-title">Control de Señal</div>
+                <div class="premium-grid">
+                    <!-- BOTÓN CKP PRINCIPAL -->
+                    <button class="btn-premium large active" onclick="setPattern(60, 2, this, 'BOSCH 60-2')">
+                        <div class="icon">⚙️</div>
+                        <div class="label">CKP</div>
+                        <div class="sub">BOSCH 60-2 (60-2)</div>
+                    </button>
+
+                    <!-- BOTONES AUX -->
+                    <button class="btn-premium" onclick="setPattern(36, 1, this, 'AUX 1 (FORD 36-1)')">
+                        <div class="icon">⚡</div>
+                        <div class="label">AUX 1</div>
+                    </button>
+                    <button class="btn-premium" onclick="setPattern(36, 2, this, 'AUX 2 (TOYOTA 36-2)')">
+                        <div class="icon">🔧</div>
+                        <div class="label">AUX 2</div>
+                    </button>
+                    <button class="btn-premium" onclick="setPattern(1, 0, this, 'AUX 3 (HALL)')">
+                        <div class="icon">💎</div>
+                        <div class="label">AUX 3</div>
+                    </button>
+                    <button class="btn-premium" onclick="setPattern(60, 2, this, 'AUX 4 (SUBARU)')">
+                        <div class="icon">🚀</div>
+                        <div class="label">AUX 4</div>
+                    </button>
+                    <button class="btn-premium" onclick="setPattern(60, 2, this, 'AUX 5')">
+                        <div class="icon">🔥</div>
+                        <div class="label">AUX 5</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- BOTÓN MOTOR CIRCULAR -->
+            <button id="engine-btn" class="engine-btn-circle">
+                <span>ON</span>
+                <span class="sub">OFF</span>
+                <span style="font-size: 0.5rem; color: #475569; margin-top: 5px;">ENGINE</span>
+            </button>
+        </div>
+
+        <!-- TACÓMETRO CENTRAL -->
+        <div class="tacho-wrapper">
+            <div id="tacho-box" class="tacho-container">
+                <img id="tacho-img" src="tacho_off.png" alt="Tacho" class="tacho-bg">
+                <div id="tacho-needle" class="needle"></div>
+                <div class="tacho-center">
+                    <div style="font-size: 1.5rem; color: #475569; letter-spacing: 5px; margin-bottom: 10px;">SYSTEM READY</div>
+                    <div id="rpm-display" class="rpm-val">1050</div>
+                    <div class="rpm-unit">RPM</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL DERECHO DATOS -->
+        <div class="side-panel">
+            <div class="premium-card" style="text-align: left;">
+                <div class="card-title">Datos Técnicos</div>
+                <div class="tech-data">
+                    <div class="tech-item">
+                        <div class="tech-label">Patrón</div>
+                        <div class="tech-val">60-2</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-label">Salida CKP</div>
+                        <div class="tech-val">GPIO 4</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-label">Engine</div>
+                        <div class="tech-val">GPIO 18</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="premium-card">
+                <div class="card-title" style="margin-bottom: 10px;">System Log</div>
+                <div id="log-console" style="font-family: monospace; font-size: 0.6rem; text-align: left; height: 150px; overflow-y: auto; color: #00ff88;">
+                    [CORE] READY...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
