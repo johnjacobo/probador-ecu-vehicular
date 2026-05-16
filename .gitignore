@@ -1,0 +1,13 @@
+# ESP-IDF
+build/
+sdkconfig.old
+.ninja_log
+.ninja_deps
+
+# Python (si hay scripts auxiliares)
+__pycache__/
+*.py[cod]
+
+# SO
+.DS_Store
+Thumbs.db
