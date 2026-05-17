@@ -541,6 +541,47 @@ body.dashboard-active {
     box-shadow: 0 0 6px #00ff88, 0 0 12px #00ff88;
 }
 
+/* LED Rojo en Zona de Peligro */
+.danger-zone .cyber-btn.active .led-dot {
+    background: #ff003c;
+    box-shadow: 0 0 6px #ff003c, 0 0 12px #ff003c;
+}
+
+/* Animaciones de parpadeo dinámico */
+@keyframes led-blink {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 6px #00ff88, 0 0 12px #00ff88;
+        background: #00ff88;
+    }
+    50% {
+        opacity: 0.2;
+        box-shadow: none;
+        background: #1e293b;
+    }
+}
+
+@keyframes led-blink-danger {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 6px #ff003c, 0 0 12px #ff003c;
+        background: #ff003c;
+    }
+    50% {
+        opacity: 0.2;
+        box-shadow: none;
+        background: #1e293b;
+    }
+}
+
+.cyber-btn.active.running .led-dot {
+    animation: led-blink var(--blink-speed, 0.4s) infinite;
+}
+
+.danger-zone .cyber-btn.active.running .led-dot {
+    animation: led-blink-danger var(--blink-speed, 0.4s) infinite;
+}
+
 /* Etiqueta debajo del ícono reducida */
 .btn-label {
     font-size: 0.7rem; /* Reducido sustancialmente */
@@ -881,7 +922,8 @@ body.dashboard-active {
 .form-label {
     font-size: 0.6rem;
     font-weight: 700;
-    color: #e2e8f0; /* Color blanco plateado brillante para excelente legibilidad */
+    color: #00f2ff; /* Color cyan constante y brillante para visibilidad perfecta */
+    text-shadow: 0 0 4px rgba(0, 242, 255, 0.2);
     letter-spacing: 1.2px;
     font-family: 'Rajdhani', sans-serif;
     transition: 0.2s color, 0.2s text-shadow;
@@ -890,17 +932,17 @@ body.dashboard-active {
 
 .form-group:focus-within .form-label {
     color: var(--primary-neon);
-    text-shadow: 0 0 5px rgba(0, 242, 255, 0.4);
+    text-shadow: 0 0 8px rgba(0, 242, 255, 0.5);
 }
 
 .danger-zone .form-group:focus-within .form-label {
     color: #ff003c;
-    text-shadow: 0 0 5px rgba(255, 0, 60, 0.4);
+    text-shadow: 0 0 8px rgba(255, 0, 60, 0.5);
 }
 
 .form-vertical input {
     background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(0, 242, 255, 0.25); /* Borde cyan constante y visible */
     border-radius: 6px;
     padding: 6px 10px;
     color: #fff;
@@ -914,8 +956,8 @@ body.dashboard-active {
 
 .form-vertical input:focus {
     outline: none;
-    border-color: rgba(0, 242, 255, 0.4);
-    box-shadow: 0 0 5px rgba(0, 242, 255, 0.15);
+    border-color: rgba(0, 242, 255, 0.6);
+    box-shadow: 0 0 8px rgba(0, 242, 255, 0.35);
 }
 
 .form-vertical input::placeholder {
@@ -1003,8 +1045,116 @@ body.dashboard-active {
     border-color: #ff003c;
 }
 
+.danger-zone .form-vertical input {
+    border-color: rgba(255, 0, 60, 0.25);
+}
+
 .danger-zone .form-vertical input:focus {
+    border-color: rgba(255, 0, 60, 0.6);
+    box-shadow: 0 0 8px rgba(255, 0, 60, 0.35);
+}
+
+/* ========================================================
+   MODAL DE CONFIRMACIÓN PREMIUM PERSONALIZADO (CYBER)
+   ======================================================== */
+.cyber-modal-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(2, 6, 23, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cyber-modal-container.show {
+    display: flex;
+    opacity: 1;
+}
+
+.cyber-modal-content {
+    background: rgba(15, 23, 42, 0.95);
+    border: 2px solid rgba(255, 0, 60, 0.35);
+    border-radius: 16px;
+    padding: 24px;
+    width: 320px;
+    box-shadow: 0 20px 50px rgba(255, 0, 60, 0.25), inset 0 0 20px rgba(255, 0, 60, 0.05);
+    transform: scale(0.9) translateY(-20px);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.cyber-modal-container.show .cyber-modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.cyber-modal-header h3 {
+    margin: 0 0 16px 0;
+    color: #ff003c;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px rgba(255, 0, 60, 0.4);
+}
+
+.cyber-modal-body p {
+    color: #e2e8f0;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0 0 24px 0;
+}
+
+.cyber-modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.cyber-modal-btn {
+    padding: 8px 16px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.cyber-modal-btn.cancel {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+}
+
+.cyber-modal-btn.cancel:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.cyber-modal-btn.accept {
+    background: rgba(255, 0, 60, 0.1);
     border-color: rgba(255, 0, 60, 0.4);
-    box-shadow: 0 0 5px rgba(255, 0, 60, 0.15);
+    color: #ff003c;
+    box-shadow: 0 0 8px rgba(255, 0, 60, 0.2);
+}
+
+.cyber-modal-btn.accept:hover {
+    background: #ff003c;
+    color: #0f172a;
+    border-color: #ff003c;
+    box-shadow: 0 0 15px rgba(255, 0, 60, 0.6);
 }
 

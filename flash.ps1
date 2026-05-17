@@ -3,5 +3,11 @@ $env:PATH = "$env:PATH;G:\Espressif\tools\git\cmd;C:\Users\JACOB_PC\AppData\Loca
 $python = 'G:\Espressif\tools\python\v5.4.4\venv\Scripts\python.exe'
 $idf_py = 'G:\Espressif\v5.4.4\esp-idf\tools\idf.py'
 
-Write-Host "--- Iniciando Compilación y Grabación (Modo Seguro 115200) ---"
+cd esp32_code
+Write-Host "--- Configurando ESP32 y Compilando desde Cero ---"
+& $python $idf_py set-target esp32
+& $python $idf_py build
+
+Write-Host "--- Grabando Firmware (Modo Seguro 115200) ---"
 & $python $idf_py -p COM5 -b 115200 flash
+cd ..

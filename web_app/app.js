@@ -70,9 +70,20 @@ async function onConnect() {
         get('dashboard-content').classList.add('active-dashboard');
 
     } catch (error) {
-        statusMsg.innerText = "ERROR O CONEXIÓN CANCELADA";
-        mainBtn.innerText = "REINTENTAR";
-        console.error("ERROR BLE:", error);
+        console.error("CONEXIÓN REAL BLE CANCELADA O NO DETECTADA. ACTIVANDO SIMULACIÓN LOCALLY...");
+        
+        statusMsg.innerText = "MODO SIMULACIÓN ACTIVADO";
+        mainBtn.innerText = "DESCONECTAR";
+        
+        isConnected = true;
+        
+        // Cambiar estado visual de la barra a conectado (Simulado)
+        bar.classList.add('connected');
+        
+        // Revelar dashboard futuro
+        document.body.classList.add('dashboard-active');
+        get('dashboard-content').classList.remove('disabled-dashboard');
+        get('dashboard-content').classList.add('active-dashboard');
     }
 }
 
@@ -134,6 +145,19 @@ function updateTacho(rpm) {
     } else {
         dashboard.classList.remove('danger-zone');
     }
+    
+    // Hacer titilar el LED del botón activo si RPM > 0
+    const activeBtn = document.querySelector('.cyber-btn.active');
+    if (activeBtn) {
+        if (rpm > 0) {
+            activeBtn.classList.add('running');
+            // Calcular velocidad de parpadeo (entre 0.6s para baja velocidad y 0.04s para 8000 RPM)
+            const speed = Math.max(0.04, 0.6 - (percentage * 0.56));
+            activeBtn.style.setProperty('--blink-speed', `${speed}s`);
+        } else {
+            activeBtn.classList.remove('running');
+        }
+    }
 }
 
 // Enviar datos por Bluetooth si está conectado
@@ -152,14 +176,34 @@ async function sendState() {
         case 'aux5': signalId = 5; break;
     }
     
+    // Obtener los dientes (N) y faltantes (M) según la señal
+    let teeth = 60;
+    let missing = 2;
+    
+    if (currentSignal === 'ckp') {
+        const activeId = localStorage.getItem('active_ckp_id') || 'bosch';
+        const sigArray = JSON.parse(localStorage.getItem('ckp_signals')) || DEFAULT_CKP_SIGNALS;
+        const activeSig = sigArray.find(s => s.id === activeId);
+        if (activeSig) {
+            teeth = activeSig.teeth || (activeId === 'ford' || activeId === 'toyota' ? 36 : 60);
+            missing = activeSig.missing !== undefined ? activeSig.missing : (activeId === 'ford' ? 1 : 2);
+        }
+    } else {
+        // Señales simples sin dientes faltantes
+        teeth = 1;
+        missing = 0;
+    }
+    
     try {
-        const data = new Uint8Array(3);
+        const data = new Uint8Array(5);
         data[0] = rpm & 0xFF;         // Byte 0: RPM Bajo
         data[1] = (rpm >> 8) & 0xFF;  // Byte 1: RPM Alto
         data[2] = signalId;           // Byte 2: ID de Señal (0 a 5)
+        data[3] = teeth;              // Byte 3: Dientes N
+        data[4] = missing;            // Byte 4: Faltantes M
         
         await characteristic.writeValue(data);
-        console.log(`Enviado BLE: RPM=${rpm}, Señal=${currentSignal} (ID=${signalId})`);
+        console.log(`Enviado BLE: RPM=${rpm}, Señal=${currentSignal} (ID=${signalId}), Dientes=${teeth}, Faltantes=${missing}`);
     } catch (error) {
         console.error("Error enviando estado BLE:", error);
     }
@@ -176,9 +220,9 @@ rpmSlider.addEventListener('input', (e) => {
    GESTIÓN DE SEÑALES CKP Y MODAL PERSONALIZABLE
    ======================================================== */
 const DEFAULT_CKP_SIGNALS = [
-    { id: 'bosch', name: 'BOSCH 60-2', desc: '60-2 DIENTES', isDefault: true },
-    { id: 'ford', name: 'FORD 36-1', desc: '36-1 DIENTES', isDefault: true },
-    { id: 'toyota', name: 'TOYOTA 36-2', desc: '36-2 DIENTES', isDefault: true }
+    { id: 'bosch', name: 'BOSCH 60-2', desc: '60-2 DIENTES', isDefault: true, teeth: 60, missing: 2 },
+    { id: 'ford', name: 'FORD 36-1', desc: '36-1 DIENTES', isDefault: true, teeth: 36, missing: 1 },
+    { id: 'toyota', name: 'TOYOTA 36-2', desc: '36-2 DIENTES', isDefault: true, teeth: 36, missing: 2 }
 ];
 
 function initCkpSignals() {
@@ -230,27 +274,68 @@ window.selectCkpSignal = function(id) {
     closeCkpModal();
 };
 
+function showCyberConfirm(message, onConfirm) {
+    const modal = get('cyber-confirm-modal');
+    const msgEl = get('cyber-confirm-message');
+    const btnCancel = get('cyber-confirm-cancel');
+    const btnAccept = get('cyber-confirm-accept');
+    
+    if (!modal || !msgEl || !btnCancel || !btnAccept) return;
+    
+    msgEl.innerText = message;
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('show'), 10);
+    
+    const closeConfirm = () => {
+        modal.classList.remove('show');
+        setTimeout(() => modal.style.display = 'none', 300);
+    };
+    
+    btnCancel.onclick = () => {
+        closeConfirm();
+    };
+    
+    btnAccept.onclick = () => {
+        closeConfirm();
+        onConfirm();
+    };
+}
+
 window.deleteCkpSignal = function(event, id) {
     event.stopPropagation();
     
+    console.log("[LOG-DELETE] Intento de eliminar señal con ID:", id);
+    
     let sigArray = JSON.parse(localStorage.getItem('ckp_signals')) || DEFAULT_CKP_SIGNALS;
-    const activeId = localStorage.getItem('active_ckp_id') || 'bosch';
+    const signalToDelete = sigArray.find(s => s.id === id);
+    const signalName = signalToDelete ? signalToDelete.name : "esta señal";
     
-    if (id === activeId) {
-        localStorage.setItem('active_ckp_id', 'bosch');
-        const selected = sigArray.find(s => s.id === 'bosch');
-        const ckpBtn = document.querySelector('[data-signal="ckp"]');
-        if (ckpBtn && selected) {
-            const descEl = ckpBtn.querySelector('.btn-desc');
-            if (descEl) descEl.innerText = selected.name;
+    showCyberConfirm(`¿Está seguro de que desea eliminar la señal "${signalName}" de forma permanente?`, () => {
+        console.log("[LOG-DELETE] Confirmación aceptada. Eliminando:", signalName);
+        
+        const activeId = localStorage.getItem('active_ckp_id') || 'bosch';
+        
+        if (id === activeId) {
+            console.log("[LOG-DELETE] La señal activa está siendo eliminada. Restableciendo a bosch por defecto.");
+            localStorage.setItem('active_ckp_id', 'bosch');
+            const selected = sigArray.find(s => s.id === 'bosch');
+            const ckpBtn = document.querySelector('[data-signal="ckp"]');
+            if (ckpBtn) {
+                const descEl = ckpBtn.querySelector('.btn-desc');
+                if (descEl) {
+                    descEl.innerText = selected ? selected.name : 'BOSCH 60-2';
+                }
+            }
         }
-    }
-    
-    sigArray = sigArray.filter(s => s.id !== id);
-    localStorage.setItem('ckp_signals', JSON.stringify(sigArray));
-    
-    renderCkpSignals();
-    sendState();
+        
+        // Guardar array filtrado
+        sigArray = sigArray.filter(s => s.id !== id);
+        localStorage.setItem('ckp_signals', JSON.stringify(sigArray));
+        console.log("[LOG-DELETE] Guardado exitoso en localStorage. Actualizando interfaz...");
+        
+        renderCkpSignals();
+        sendState();
+    });
 };
 
 function openCkpModal() {
@@ -293,13 +378,17 @@ if (get('back-to-list-btn')) {
     };
 }
 
-// Cerrar automáticamente cuando el mouse sale del contenedor de controles
+// Cerrar automáticamente cuando el mouse sale de la columna de controles (pero solo en el listado, no mientras escribe)
 const ckpPanel = get('ckp-floating-panel');
 const signalControls = document.querySelector('.signal-controls');
 if (signalControls) {
     signalControls.onmouseleave = () => {
         if (ckpPanel && ckpPanel.classList.contains('show')) {
-            closeCkpModal();
+            const listView = get('ckp-list-view');
+            // Solo cerramos si el listado está activo (no si está rellenando el formulario de nueva señal)
+            if (listView && listView.style.display !== 'none') {
+                closeCkpModal();
+            }
         }
     };
 }
@@ -377,11 +466,23 @@ let currentSignal = 'ckp'; // Señal por defecto
 
 signalBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        signalBtns.forEach(b => b.classList.remove('active'));
+        signalBtns.forEach(b => {
+            b.classList.remove('active');
+            b.classList.remove('running');
+        });
         btn.classList.add('active');
         
         currentSignal = btn.getAttribute('data-signal');
         console.log("Señal seleccionada:", currentSignal);
+        
+        // Si el motor está encendido, el nuevo botón activo debe empezar a parpadear inmediatamente
+        const rpm = parseInt(rpmSlider.value);
+        if (rpm > 0) {
+            btn.classList.add('running');
+            const percentage = rpm / MAX_RPM;
+            const speed = Math.max(0.04, 0.6 - (percentage * 0.56));
+            btn.style.setProperty('--blink-speed', `${speed}s`);
+        }
         
         if (currentSignal === 'ckp') {
             openCkpModal();
