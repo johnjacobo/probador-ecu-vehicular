@@ -2,10 +2,10 @@
 
 :root {
     --primary-neon: #00f2ff;
+    --success-neon: #00ff88;
     --bg-dark: #050b14;
-    --card-bg: rgba(10, 15, 26, 0.9);
+    --bar-bg: rgba(10, 15, 26, 0.8);
     --text-color: #e0e6ed;
-    --btn-off: #64748b;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -15,196 +15,996 @@ body {
     color: var(--text-color);
     font-family: 'Rajdhani', sans-serif;
     height: 100vh;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: 0.5s;
+    justify-content: flex-start; /* Ubicado en la parte de arriba siempre */
+    padding-top: 40px;
+    align-items: center;
+    transition: 0.5s all;
 }
 
-header {
+body.dashboard-active {
+    /* Ya no necesita saltar porque siempre está arriba */
+}
+
+/* ========================================================
+   BARRA HORIZONTAL DE CONEXIÓN
+   ======================================================== */
+.connection-bar {
+    position: relative;
+    width: 600px;
+    height: 45px; /* Ligeramente más delgado, como pediste */
+    background: var(--bar-bg);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px; /* Ajuste sutil al borde para acompañar el nuevo height */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: 0.5s all;
+}
+
+/* Estado Conectado: Brillo y borde verde */
+.connection-bar.connected {
+    border-color: rgba(0, 255, 136, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 255, 136, 0.1);
+}
+
+/* Indicador Circular Izquierdo */
+.status-indicator {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #475569;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    margin-right: 20px;
+    z-index: 2;
+    transition: 0.3s all;
+}
+
+.connection-bar.connected .status-indicator {
+    background: var(--success-neon);
+    box-shadow: 0 0 15px var(--success-neon);
+    animation: fadePulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes fadePulse {
+    0% { opacity: 0.2; box-shadow: 0 0 5px var(--success-neon); }
+    100% { opacity: 1; box-shadow: 0 0 20px var(--success-neon); }
+}
+
+.bar-content {
+    flex: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 30px;
-    background: rgba(0,0,0,0.2);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.brand h1 { font-size: 1.2rem; letter-spacing: 5px; color: #fff; font-weight: 700; }
-
-.main-content {
-    flex: 1;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 20px;
-    position: relative;
-}
-
-/* Vertical Slider (Fijado a la izquierda) */
-.vertical-slider-container {
-    position: absolute;
-    left: 60px;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 450px;
-    width: 2px;
-    background: rgba(255,255,255,0.05);
-}
-
-.vertical-slider {
-    -webkit-appearance: none;
-    width: 450px;
-    height: 1px;
-    background: var(--primary-neon);
-    transform: rotate(-90deg);
-    position: absolute;
-    left: -224px;
-    top: 224px;
-    cursor: pointer;
-}
-
-.vertical-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 12px;
-    height: 45px;
-    background: #fff;
-    border-radius: 4px;
-    box-shadow: 0 0 10px rgba(255,255,255,0.5);
-}
-
-.side-panel { width: 300px; display: flex; flex-direction: column; gap: 30px; }
-
-.premium-card {
-    background: var(--card-bg);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    text-align: center;
-}
-
-.card-title {
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: #475569;
-    margin-bottom: 20px;
-    text-transform: uppercase;
-}
-
-/* Grid de Botones Premium */
-.premium-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.btn-premium {
-    background: rgba(15, 23, 42, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 15px;
-    padding: 15px 5px;
-    color: var(--btn-off);
-    cursor: pointer;
-    transition: 0.3s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-}
-
-.btn-premium.large { grid-column: span 2; padding: 25px 10px; }
-.btn-premium .icon { font-size: 1.4rem; opacity: 0.5; }
-.btn-premium .label { font-size: 0.55rem; font-weight: 700; letter-spacing: 1px; }
-.btn-premium .sub { font-size: 0.5rem; opacity: 0.4; }
-
-.btn-premium:hover, .btn-premium.active {
-    border-color: var(--primary-neon);
-    background: rgba(0, 242, 255, 0.05);
-    color: #fff;
-}
-
-.btn-premium.active .icon { opacity: 1; filter: drop-shadow(0 0 5px var(--primary-neon)); }
-
-/* Tacómetro Circular */
-.tacho-container {
-    position: relative;
-    width: 580px;
-    height: 580px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.tacho-bg { width: 100%; height: 100%; transition: 0.5s; }
-
-.needle {
-    position: absolute;
-    bottom: 50%;
-    left: 50%;
-    width: 3px;
-    height: 220px;
-    background: #fff;
-    transform-origin: bottom center;
-    transform: translateX(-50%) rotate(-135deg);
-    box-shadow: 0 0 15px rgba(255,255,255,0.3);
     z-index: 2;
 }
 
-.tacho-center {
+.status-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: #94a3b8;
+    transition: 0.3s color;
+}
+
+.connection-bar.connected .status-text {
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+/* Botón de Acción */
+.action-btn {
+    background: rgba(0, 242, 255, 0.1);
+    border: 1px solid var(--primary-neon);
+    color: #fff;
+    padding: 4px 15px; /* Botón aún más ajustado para que no choque arriba o abajo */
+    border-radius: 12px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s all;
+}
+
+.action-btn:hover {
+    background: var(--primary-neon);
+    color: #000;
+    box-shadow: 0 0 20px var(--primary-neon);
+}
+
+.connection-bar.connected .action-btn {
+    border-color: #ff3366;
+    background: rgba(255, 51, 102, 0.1);
+    color: #ff3366;
+}
+
+.connection-bar.connected .action-btn:hover {
+    background: #ff3366;
+    color: #fff;
+    box-shadow: 0 0 20px #ff3366;
+}
+
+/* ========================================================
+   ANIMACIÓN INTERIOR (OLA DE ENERGÍA)
+   ======================================================== */
+.energy-wave {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(0, 255, 136, 0.05), 
+        rgba(0, 255, 136, 0.15), 
+        rgba(0, 255, 136, 0.05), 
+        transparent);
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.connection-bar.connected .energy-wave {
+    opacity: 1;
+    animation: waveFlow 3s linear infinite;
+}
+
+@keyframes waveFlow {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(50%); }
+}
+
+/* ESTADOS DEL DASHBOARD */
+.disabled-dashboard {
+    pointer-events: none;
+    filter: grayscale(100%) brightness(0.4);
+    opacity: 0.7;
+    transition: all 0.5s ease-in-out;
+}
+
+.active-dashboard {
+    filter: grayscale(0%) brightness(1);
+    opacity: 1;
+    transition: all 0.5s ease-in-out;
+}
+
+/* ========================================================
+   TACÓMETRO Y CONTROLES (DASHBOARD CONTENT)
+   ======================================================== */
+.dashboard-layout {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 60px; /* Reducido un poco para que no quede tan lejos */
+    margin-top: 40px;
+    animation: fadeIn 1s ease-out forwards;
+}
+
+/* Paneles laterales para centrar el tacómetro */
+.side-panel {
+    flex: 1; /* Distribuye espacio equitativamente */
+    min-width: 320px; /* Asegura espacio suficiente para acelerador vertical + botones */
+    display: flex;
+}
+.left-panel {
+    justify-content: flex-start; /* Empujado completamente a la izquierda de la pantalla */
+    align-self: flex-start; /* Alinea los elementos al tope de la fila flex */
+    align-items: center;
+    gap: 25px; /* Ligeramente más separado para elegancia */
+    padding-left: 60px; /* Margen de seguridad elegante con el borde izquierdo de la pantalla */
+    margin-top: -30px; /* Desplaza físicamente la columna completa hacia arriba de la pantalla */
+}
+.right-panel {
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tacho-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    padding: 20px 30px; /* Reducido para que el cuadro exterior sea más pequeño */
+    border: 1px solid rgba(0, 242, 255, 0.15); /* Cuadro con líneas delgadas */
+    border-radius: 25px;
+    background: linear-gradient(145deg, rgba(2, 6, 23, 0.6) 0%, rgba(0, 10, 30, 0.2) 100%);
+    box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.02), 0 15px 35px rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+}
+
+.tacho-container {
+    position: relative;
+    width: 400px;
+    height: 400px;
+}
+
+/* Anillo neón exterior para darle vida al tacómetro */
+.tacho-container::after {
+    content: '';
     position: absolute;
     top: 50%;
     left: 50%;
+    width: 344px; /* Coincide exactamente con el radio de 43% del clip-path (86% de 400px) */
+    height: 344px;
     transform: translate(-50%, -50%);
-    text-align: center;
-    z-index: 3;
+    border-radius: 50%;
+    border: 3px solid #00f2ff; /* Mismo color de los números */
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.6), inset 0 0 15px rgba(0, 242, 255, 0.4); /* Glow brillante */
+    pointer-events: none;
+    z-index: 5;
 }
 
-.rpm-val { font-size: 4rem; color: #fff; font-weight: 700; line-height: 1; }
-.rpm-unit { font-size: 0.8rem; color: #475569; letter-spacing: 5px; margin-top: 5px; }
+.tacho-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    clip-path: circle(43% at 50% 50%); /* Centro exacto y radio preciso para borrar el gris */
+    z-index: 1;
+}
 
-/* Botón Engine Circular Bottom */
-.engine-btn-circle {
-    width: 120px;
-    height: 120px;
+/* Aguja Cibernética (Naranja brillante) */
+.cyber-needle-container {
+    position: absolute;
+    top: 50%; /* Centro exacto matemático de la imagen */
+    left: 50%;
+    width: 200px; /* Longitud del diámetro que gira */
+    height: 200px;
+    margin-left: -100px;
+    margin-top: -100px;
+    transform: rotate(135deg); /* Inicio en el "0" de la imagen (7:30 en punto) */
+    transition: transform 0.1s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 10;
+}
+
+.cyber-needle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 90px;
+    height: 8px;
+    background: #ff8800;
+    transform-origin: left center;
+    border-radius: 4px;
+    box-shadow: 0 0 15px #ff8800, 0 0 30px #ffaa00;
+    clip-path: polygon(0 20%, 100% 40%, 100% 60%, 0 80%);
+}
+
+.needle-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 15px; /* Más pequeño */
+    height: 15px; /* Más pequeño */
+    background: #000;
+    border: 2px solid #00f2ff;
     border-radius: 50%;
-    background: rgba(0,0,0,0.5);
-    border: 2px solid #1e293b;
-    margin: 0 auto;
-    cursor: pointer;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 20px #00f2ff;
+    z-index: 11;
+}
+
+/* Grupo de RPM (Contenedor general) */
+.rpm-group {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px; /* Espacio entre el recuadro y el texto RPM */
+    z-index: 15;
+}
+
+/* Display Digital RPM (Solo el recuadro de números) */
+.cyber-rpm-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #020617; /* Fondo sólido oscuro */
+    padding: 3px 15px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+}
+
+#rpm-val {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #00f2ff;
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.8);
+    font-family: 'Rajdhani', monospace;
+    line-height: 1;
+}
+
+.cyber-rpm-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 3px;
+    text-shadow: 0 0 5px rgba(0,0,0,0.8);
+}
+
+/* CONTROLES DE MOTOR (ACELERADOR VERTICAL DERECHO) */
+.engine-controls {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: 0.3s;
+    padding: 20px 10px; /* Más ajustado */
+    width: 80px; /* Forzamos a que sea un panel delgado */
+    border: 1px solid rgba(0, 242, 255, 0.15);
+    border-radius: 25px;
+    background: linear-gradient(145deg, rgba(2, 6, 23, 0.6) 0%, rgba(0, 10, 30, 0.2) 100%);
+    box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.02), 0 15px 35px rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    height: 540px; /* Alargado verticalmente de 480px a 540px */
+    gap: 20px; /* Reducido para optimizar espacio */
 }
 
-.engine-btn-circle span { font-size: 0.8rem; font-weight: 800; color: #fff; letter-spacing: 2px; }
-.engine-btn-circle .sub { font-size: 0.5rem; color: #475569; margin-top: 2px; }
-
-.engine-btn-circle.active {
-    border-color: var(--primary-neon);
-    box-shadow: 0 0 25px rgba(0, 242, 255, 0.3);
-    background: radial-gradient(circle, rgba(0, 242, 255, 0.1) 0%, rgba(0,0,0,0.5) 100%);
+.slider-vertical-wrapper {
+    width: 30px;
+    height: 420px; /* Incrementado para aprovechar los 540px de alto */
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.btn-scan {
-    background: transparent;
-    color: #fff;
-    border: 1px solid #334155;
-    padding: 8px 25px;
-    border-radius: 20px;
-    font-size: 0.7rem;
-    font-weight: 700;
+.slider-icon {
+    font-size: 1.8rem; /* Tamaño perfecto e impactante */
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+    transition: 0.3s all;
+    opacity: 0.8;
+}
+
+/* Animación del cohete por defecto (flotando suavemente) */
+@keyframes rocket-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+.icon-rocket {
+    animation: rocket-float 2s ease-in-out infinite;
+}
+
+/* Animación en la Zona Roja: ¡Vibración de lanzamiento a toda velocidad! */
+@keyframes rocket-launch {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    10% { transform: translate(-1px, -1px) rotate(-1deg); }
+    30% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 1px) rotate(-1deg); }
+    70% { transform: translate(1px, 1px) rotate(1deg); }
+    90% { transform: translate(-1px, -1px) rotate(0deg); }
+}
+
+.danger-zone .icon-rocket {
+    animation: rocket-launch 0.1s linear infinite; /* Tiembla súper rápido */
+    filter: drop-shadow(0 0 10px #ff003c);
+    opacity: 1;
+}
+
+.neon-slider {
+    -webkit-appearance: none;
+    position: absolute; /* Evita que el contenedor flex afecte sus dimensiones */
+    width: 420px; /* Recorrido maximizado a 420px reales */
+    min-width: 420px; /* Previene la contracción horizontal del navegador */
+    height: 4px; /* MUCHO MÁS DELGADO */
+    background: #1e293b;
+    border-radius: 5px;
+    outline: none;
+    box-shadow: inset 0 0 5px rgba(0,0,0,1);
+    transform: rotate(-90deg); /* Lo pone vertical */
+}
+
+.neon-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px; /* Botón más pequeño */
+    height: 16px;
+    border-radius: 50%;
+    background: var(--primary-neon);
     cursor: pointer;
-    letter-spacing: 1px;
+    box-shadow: 0 0 15px var(--primary-neon), 0 0 30px var(--primary-neon);
+    transition: 0.2s all;
 }
 
-.btn-scan:hover { border-color: var(--primary-neon); }
+.neon-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: #fff;
+}
 
-/* Datos Técnicos Card */
-.tech-data { text-align: left; }
-.tech-item { margin-bottom: 15px; }
-.tech-label { font-size: 0.55rem; color: #475569; text-transform: uppercase; margin-bottom: 2px; }
-.tech-val { font-size: 0.75rem; color: var(--text-color); font-weight: 600; }
+/* ========================================================
+   EFECTO ZONA ROJA (>4000 RPM)
+   ======================================================== */
+.danger-zone .cyber-needle {
+    background: #ff003c;
+    box-shadow: 0 0 15px #ff003c, 0 0 30px #ff003c;
+}
+.danger-zone .needle-center {
+    border-color: #ff003c;
+    box-shadow: 0 0 20px #ff003c;
+}
+.danger-zone #rpm-val {
+    color: #ff003c;
+    text-shadow: 0 0 10px rgba(255, 0, 60, 0.8);
+}
+.danger-zone .cyber-rpm-display {
+    border-color: rgba(255, 0, 60, 0.5);
+    box-shadow: 0 0 15px rgba(255, 0, 60, 0.3);
+}
+.danger-zone .tacho-wrapper .tacho-container::after {
+    border-color: #ff003c;
+    box-shadow: 0 0 20px rgba(255, 0, 60, 0.6), inset 0 0 15px rgba(255, 0, 60, 0.4);
+}
+.danger-zone .neon-slider::-webkit-slider-thumb {
+    background: #ff003c;
+    box-shadow: 0 0 15px #ff003c, 0 0 30px #ff003c;
+}
+.danger-zone .engine-controls {
+    border-color: rgba(255, 0, 60, 0.4);
+    box-shadow: inset 0 0 20px rgba(255, 0, 60, 0.05), 0 15px 35px rgba(0,0,0,0.6);
+}
+
+/* ========================================================
+   SELECTOR DE SEÑAL (GRID 2x2 ORIGINAL REFORMADO ULTRA-MINI)
+   ======================================================== */
+.signal-controls {
+    position: relative; /* Servirá de ancla para el panel flotante de CKP */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Empuja el título y los botones hacia el límite superior */
+    padding: 25px 10px; /* Reducido ligeramente arriba para que queden más al borde superior */
+    width: 190px; /* Más pequeño */
+    border: 1px solid rgba(0, 242, 255, 0.15);
+    border-radius: 25px;
+    background: linear-gradient(145deg, rgba(2, 6, 23, 0.6) 0%, rgba(0, 10, 30, 0.2) 100%);
+    box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.02), 0 15px 35px rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    height: 540px; /* Alargado verticalmente a 540px */
+}
+
+.panel-title {
+    color: #fff;
+    font-size: 0.95rem;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    margin-bottom: 20px; /* Subido de 50px a 20px para empujar los botones arriba */
+    text-align: center;
+    opacity: 0.8;
+}
+
+.signal-grid-2x3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr; /* 3 filas */
+    gap: 10px; /* Ligeramente más compacto */
+    width: 100%;
+    height: 220px; /* Reducido de 340px a 220px para restaurar el tamaño mini original */
+}
+
+.cyber-btn {
+    position: relative;
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5px; /* Súper ajustado */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+.cyber-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.7);
+}
+
+.cyber-btn.active {
+    background: rgba(0, 242, 255, 0.08);
+    border-color: rgba(0, 242, 255, 0.3);
+    box-shadow: inset 0 0 10px rgba(0, 242, 255, 0.1), 0 4px 8px rgba(0,0,0,0.5);
+}
+
+/* LED Verde en la esquina */
+.led-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 4px; /* Más pequeño */
+    height: 4px;
+    border-radius: 50%;
+    background: #334155;
+    transition: 0.3s all;
+}
+
+.cyber-btn.active .led-dot {
+    background: #00ff88;
+    box-shadow: 0 0 6px #00ff88, 0 0 12px #00ff88;
+}
+
+/* Etiqueta debajo del ícono reducida */
+.btn-label {
+    font-size: 0.7rem; /* Reducido sustancialmente */
+    color: #cbd5e1;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 1px;
+    margin-top: 3px;
+    margin-bottom: 1px;
+    transition: 0.3s all;
+}
+
+.cyber-btn.active .btn-label {
+    color: #fff;
+    text-shadow: 0 0 6px rgba(255,255,255,0.5);
+}
+
+/* Ícono central súper compacto */
+.btn-icon {
+    font-size: 1.3rem; /* Más pequeño */
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    transition: 0.3s all;
+    opacity: 0.6;
+    margin: 0;
+}
+
+.cyber-btn.active .btn-icon, .cyber-btn:hover .btn-icon {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.4));
+}
+
+/* Descripción inferior (BOSCH 60-2...) */
+.btn-desc {
+    font-size: 0.52rem; /* Más pequeño para botones súper reducidos */
+    color: #475569;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-family: 'Rajdhani', sans-serif;
+    transition: 0.3s all;
+}
+
+.cyber-btn.active .btn-desc {
+    color: #00ff88;
+    text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+}
+
+/* ANIMACIONES DE LOS ÍCONOS */
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.cyber-btn.active .icon-spin, .cyber-btn:hover .icon-spin { animation: spin 3s linear infinite; }
+
+@keyframes pulse-icon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2) translateY(-2px); }
+}
+.cyber-btn.active .icon-pulse, .cyber-btn:hover .icon-pulse { animation: pulse-icon 1s ease-in-out infinite; }
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-15deg); }
+    75% { transform: rotate(15deg); }
+}
+.cyber-btn.active .icon-wiggle, .cyber-btn:hover .icon-wiggle { animation: wiggle 0.5s ease-in-out infinite; }
+
+@keyframes float-icon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+.cyber-btn.active .icon-float, .cyber-btn:hover .icon-float { animation: float-icon 2s ease-in-out infinite; }
+
+
+/* Efecto de barrido al hacer hover */
+.cyber-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.cyber-btn:hover::before {
+    left: 100%;
+}
+
+
+/* ========================================================
+   PANEL DE GESTIÓN DE SEÑALES CKP (ACOPLADO DEBAJO)
+   ======================================================== */
+.ckp-floating-panel {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    top: 60px; /* Se superpone elegantemente cubriendo los botones de señales */
+    left: 0;
+    width: 100%;
+    margin-top: 0;
+    background: rgba(15, 23, 42, 0.96);
+    border: 1px solid rgba(0, 242, 255, 0.25);
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 15px 35px rgba(0, 242, 255, 0.25), inset 0 0 20px rgba(0, 242, 255, 0.05);
+    z-index: 100;
+    box-sizing: border-box;
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ckp-floating-panel.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.panel-header h3 {
+    color: #fff;
+    font-size: 0.95rem;
+    letter-spacing: 2px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 0 8px rgba(0, 242, 255, 0.4);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 1.3rem;
+    cursor: pointer;
+    line-height: 1;
+    transition: 0.2s all;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.close-btn:hover {
+    color: #ff003c;
+    text-shadow: 0 0 8px #ff003c;
+}
+
+.panel-subtitle {
+    font-size: 0.62rem;
+    color: #475569;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.back-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--primary-neon);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: 0.2s all;
+    user-select: none;
+    width: fit-content;
+}
+
+.back-row:hover {
+    color: #fff;
+    text-shadow: 0 0 8px var(--primary-neon);
+    transform: translateX(-2px);
+}
+
+.danger-zone .back-row {
+    color: #ff003c;
+}
+
+.danger-zone .back-row:hover {
+    text-shadow: 0 0 8px #ff003c;
+}
+
+/* LISTA DE SEÑALES LIMITADA A 3 */
+.ckp-signals-list {
+    max-height: 168px; /* Altura perfecta para exactamente 3 elementos */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding-right: 4px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Custom Scrollbar Premium ("Borra") */
+.ckp-signals-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.ckp-signals-list::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 2px;
+}
+
+.ckp-signals-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 242, 255, 0.4);
+    border-radius: 2px;
+    box-shadow: 0 0 4px rgba(0, 242, 255, 0.3);
+}
+
+.ckp-signals-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 242, 255, 0.8);
+}
+
+/* ITEM DE SEÑAL */
+.ckp-signal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(30, 41, 59, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ckp-signal-item:hover {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(0, 242, 255, 0.15);
+    transform: translateX(2px);
+}
+
+.ckp-signal-item.active {
+    background: rgba(0, 242, 255, 0.05);
+    border-color: rgba(0, 242, 255, 0.3);
+    box-shadow: inset 0 0 8px rgba(0, 242, 255, 0.05);
+}
+
+.sig-info-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.sig-name {
+    font-size: 0.72rem;
+    color: #e2e8f0;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 0.5px;
+    transition: 0.2s all;
+}
+
+.ckp-signal-item.active .sig-name {
+    color: #fff;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+.sig-desc {
+    font-size: 0.55rem;
+    color: #475569;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    font-family: 'Rajdhani', sans-serif;
+    transition: 0.2s all;
+}
+
+.ckp-signal-item.active .sig-desc {
+    color: #00ff88;
+    text-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+}
+
+/* BOTÓN DE BORRAR */
+.del-sig-btn {
+    background: none;
+    border: none;
+    color: #334155;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.del-sig-btn:hover {
+    color: #ff003c;
+    background: rgba(255, 0, 60, 0.1);
+    box-shadow: 0 0 5px rgba(255, 0, 60, 0.2);
+}
+
+/* FORMULARIO AGREGAR */
+.add-signal-form {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.form-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.flex-1 {
+    flex: 1;
+    min-width: 0;
+}
+
+.form-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #e2e8f0; /* Color blanco plateado brillante para excelente legibilidad */
+    letter-spacing: 1.2px;
+    font-family: 'Rajdhani', sans-serif;
+    transition: 0.2s color, 0.2s text-shadow;
+    user-select: none;
+}
+
+.form-group:focus-within .form-label {
+    color: var(--primary-neon);
+    text-shadow: 0 0 5px rgba(0, 242, 255, 0.4);
+}
+
+.danger-zone .form-group:focus-within .form-label {
+    color: #ff003c;
+    text-shadow: 0 0 5px rgba(255, 0, 60, 0.4);
+}
+
+.form-vertical input {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #fff;
+    font-size: 0.7rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    box-sizing: border-box;
+    width: 100%;
+    transition: 0.2s all;
+}
+
+.form-vertical input:focus {
+    outline: none;
+    border-color: rgba(0, 242, 255, 0.4);
+    box-shadow: 0 0 5px rgba(0, 242, 255, 0.15);
+}
+
+.form-vertical input::placeholder {
+    color: #334155;
+    font-size: 0.62rem;
+}
+
+.form-row-numbers {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+}
+
+.form-row-numbers input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* BOTÓN ANCHO AGREGAR PATRÓN */
+.modal-add-btn-wide {
+    background: rgba(0, 242, 255, 0.08);
+    border: 1px solid rgba(0, 242, 255, 0.25);
+    border-radius: 6px;
+    color: #00f2ff;
+    padding: 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 1px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.modal-add-btn-wide:hover {
+    background: #00f2ff;
+    color: #0f172a;
+    box-shadow: 0 0 8px rgba(0, 242, 255, 0.6);
+    border-color: #00f2ff;
+}
+
+/* ========================================================
+   MODAL EN ZONA ROJA (>4000 RPM)
+   ======================================================== */
+.danger-zone .ckp-floating-panel {
+    border-color: rgba(255, 0, 60, 0.25);
+    box-shadow: 0 15px 35px rgba(255, 0, 60, 0.25), inset 0 0 20px rgba(255, 0, 60, 0.05);
+}
+
+.danger-zone .panel-header h3 {
+    text-shadow: 0 0 8px rgba(255, 0, 60, 0.4);
+}
+
+.danger-zone .ckp-signals-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 0, 60, 0.4);
+    box-shadow: 0 0 4px rgba(255, 0, 60, 0.3);
+}
+
+.danger-zone .ckp-signals-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 0, 60, 0.8);
+}
+
+.danger-zone .ckp-signal-item.active {
+    background: rgba(255, 0, 60, 0.05);
+    border-color: rgba(255, 0, 60, 0.3);
+}
+
+.danger-zone .ckp-signal-item.active .sig-desc {
+    color: #ff003c;
+    text-shadow: 0 0 5px rgba(255, 0, 60, 0.3);
+}
+
+.danger-zone .modal-add-btn-wide {
+    background: rgba(255, 0, 60, 0.08);
+    border-color: rgba(255, 0, 60, 0.25);
+    color: #ff003c;
+}
+
+.danger-zone .modal-add-btn-wide:hover {
+    background: #ff003c;
+    color: #0f172a;
+    box-shadow: 0 0 8px rgba(255, 0, 60, 0.6);
+    border-color: #ff003c;
+}
+
+.danger-zone .form-vertical input:focus {
+    border-color: rgba(255, 0, 60, 0.4);
+    box-shadow: 0 0 5px rgba(255, 0, 60, 0.15);
+}
+

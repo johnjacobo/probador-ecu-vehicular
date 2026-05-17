@@ -3,111 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro-ECU Simulator | Premium Console</title>
+    <title>Pro-ECU Simulator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <div class="brand"><h1>PRO-ECU</h1></div>
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div id="status-dot" style="width: 8px; height: 8px; background: #333; border-radius: 50%;"></div>
-                <span id="status-text" style="font-size: 0.6rem; color: #475569; letter-spacing: 1px;">OFFLINE</span>
+    
+    <!-- CONTENEDOR PRINCIPAL (Rectángulo Horizontal) -->
+    <div class="connection-bar" id="connection-bar">
+        <div class="status-indicator" id="status-indicator"></div>
+        <div class="bar-content">
+            <span id="status-msg" class="status-text">SISTEMA DESCONECTADO</span>
+            <button id="main-action-btn" class="action-btn">ESCANEAR</button>
+        </div>
+        <!-- Capa de animación interior (oculta por defecto) -->
+        <div class="energy-wave" id="energy-wave"></div>
+    </div>
+
+    <!-- FUTURO CONTENIDO (Se mostrará debajo de la barra al conectar) -->
+    <div id="dashboard-content" class="disabled-dashboard dashboard-layout">
+        
+        <!-- PANEL DE SEÑALES Y ACELERADOR (IZQUIERDA) -->
+        <div class="side-panel left-panel">
+            <!-- CONTROLES DE MOTOR (ACELERADOR VERTICAL) -->
+            <div class="engine-controls">
+                <div class="slider-vertical-wrapper">
+                    <input type="range" id="rpm-slider" min="0" max="8000" value="0" step="50" class="neon-slider">
+                </div>
+                <div class="slider-icon icon-rocket">🚀</div>
             </div>
-            <button id="connect-btn" class="btn-scan">ESCANEAR</button>
-        </div>
-    </header>
 
-    <div class="main-content">
-        <!-- ACELERADOR IZQUIERDA -->
-        <div class="vertical-slider-container">
-            <input type="range" id="rpm-slider" class="vertical-slider" min="0" max="8000" value="1050">
-        </div>
-
-        <!-- PANEL DE CONTROL -->
-        <div class="side-panel">
-            <div class="premium-card">
-                <div class="card-title">Control de Señal</div>
-                <div class="premium-grid">
-                    <!-- BOTÓN CKP PRINCIPAL -->
-                    <button class="btn-premium large active" onclick="setPattern(60, 2, this, 'BOSCH 60-2')">
-                        <div class="icon">⚙️</div>
-                        <div class="label">CKP</div>
-                        <div class="sub">BOSCH 60-2 (60-2)</div>
+            <!-- BOTONES -->
+            <div class="signal-controls">
+                <h3 class="panel-title">SELECTOR DE SEÑAL</h3>
+                <div class="signal-grid-2x3">
+                    <button class="cyber-btn active" data-signal="ckp">
+                        <div class="led-dot"></div>
+                        <div class="btn-icon icon-spin">⚙️</div>
+                        <div class="btn-label">CKP</div>
+                        <div class="btn-desc">BOSCH 60-2</div>
                     </button>
-
-                    <!-- BOTONES AUX -->
-                    <button class="btn-premium" onclick="setPattern(36, 1, this, 'AUX 1 (FORD 36-1)')">
-                        <div class="icon">⚡</div>
-                        <div class="label">AUX 1</div>
+                    <button class="cyber-btn" data-signal="hall">
+                        <div class="led-dot"></div>
+                        <div class="btn-icon icon-pulse">⚡</div>
+                        <div class="btn-label">AUX 1</div>
+                        <div class="btn-desc">HALL SIMPLE</div>
                     </button>
-                    <button class="btn-premium" onclick="setPattern(36, 2, this, 'AUX 2 (TOYOTA 36-2)')">
-                        <div class="icon">🔧</div>
-                        <div class="label">AUX 2</div>
+                    <button class="cyber-btn" data-signal="cmp">
+                        <div class="led-dot"></div>
+                        <div class="btn-icon icon-wiggle">🔧</div>
+                        <div class="btn-label">AUX 2</div>
+                        <div class="btn-desc">CMP (LEVAS)</div>
                     </button>
-                    <button class="btn-premium" onclick="setPattern(1, 0, this, 'AUX 3 (HALL)')">
-                        <div class="icon">💎</div>
-                        <div class="label">AUX 3</div>
+                    <button class="cyber-btn" data-signal="aux3">
+                        <div class="led-dot"></div>
+                        <div class="btn-icon icon-float">💎</div>
+                        <div class="btn-label">AUX 3</div>
+                        <div class="btn-desc">DISPONIBLE</div>
                     </button>
-                    <button class="btn-premium" onclick="setPattern(60, 2, this, 'AUX 4 (SUBARU)')">
-                        <div class="icon">🚀</div>
-                        <div class="label">AUX 4</div>
+                    <button class="cyber-btn" data-signal="aux4">
+                        <div class="led-dot"></div>
+                        <div class="btn-icon icon-spin">🌀</div>
+                        <div class="btn-label">AUX 4</div>
+                        <div class="btn-desc">DISPONIBLE</div>
                     </button>
-                    <button class="btn-premium" onclick="setPattern(60, 2, this, 'AUX 5')">
-                        <div class="icon">🔥</div>
-                        <div class="label">AUX 5</div>
+                    <button class="cyber-btn" data-signal="aux5">
+                        <div class="led-dot"></div>
+                        <div class="btn-icon icon-pulse">🔥</div>
+                        <div class="btn-label">AUX 5</div>
+                        <div class="btn-desc">DISPONIBLE</div>
                     </button>
                 </div>
-            </div>
 
-            <!-- BOTÓN MOTOR CIRCULAR -->
-            <button id="engine-btn" class="engine-btn-circle">
-                <span>ON</span>
-                <span class="sub">OFF</span>
-                <span style="font-size: 0.5rem; color: #475569; margin-top: 5px;">ENGINE</span>
-            </button>
+                <!-- PANEL DE SEÑALES CKP FLOTANTE (Acoplado justo debajo) -->
+                <div id="ckp-floating-panel" class="ckp-floating-panel">
+                    <div class="panel-header">
+                        <h3>SEÑALES CKP</h3>
+                        <button id="close-panel-btn" class="close-btn">&times;</button>
+                    </div>
+                    <div class="panel-body">
+                        <!-- VISTA 1: LISTADO DE SEÑALES -->
+                        <div id="ckp-list-view" class="panel-view">
+                            <p class="panel-subtitle">SELECCIONA UN PATRÓN</p>
+                            <!-- Lista de señales configuradas -->
+                            <div class="ckp-signals-list" id="ckp-signals-list">
+                                <!-- Se llenará dinámicamente con JS -->
+                            </div>
+                            <button id="go-to-add-btn" class="modal-add-btn-wide">NUEVA SEÑAL +</button>
+                        </div>
+                        
+                        <!-- VISTA 2: FORMULARIO DE AGREGAR -->
+                        <div id="ckp-add-view" class="panel-view" style="display: none;">
+                            <div class="back-row" id="back-to-list-btn">
+                                <span>←</span> <span>VOLVER AL LISTADO</span>
+                            </div>
+                            <div class="add-signal-form" style="border-top: none; padding-top: 0;">
+                                <div class="form-vertical">
+                                    <!-- Campo Marca -->
+                                    <div class="form-group">
+                                        <label for="new-signal-brand" class="form-label">MARCA O NOMBRE</label>
+                                        <input type="text" id="new-signal-brand" placeholder="Ej: FORD, RENAULT..." maxlength="12">
+                                    </div>
+                                    
+                                    <!-- Campos Numéricos lado a lado -->
+                                    <div class="form-row-numbers">
+                                        <div class="form-group flex-1">
+                                            <label for="new-signal-teeth" class="form-label">DIENTES (N)</label>
+                                            <input type="number" id="new-signal-teeth" placeholder="Total" min="1" max="120">
+                                        </div>
+                                        <div class="form-group flex-1">
+                                            <label for="new-signal-missing" class="form-label">FALTANTES (M)</label>
+                                            <input type="number" id="new-signal-missing" placeholder="Vacíos" min="0" max="10">
+                                        </div>
+                                    </div>
+                                    
+                                    <button id="add-signal-btn" class="modal-add-btn-wide" style="margin-top: 4px;">AGREGAR PATRÓN</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- TACÓMETRO CENTRAL -->
+        <!-- TACÓMETRO (CENTRO) -->
         <div class="tacho-wrapper">
-            <div id="tacho-box" class="tacho-container">
-                <img id="tacho-img" src="tacho_off.png" alt="Tacho" class="tacho-bg">
-                <div id="tacho-needle" class="needle"></div>
-                <div class="tacho-center">
-                    <div style="font-size: 1.5rem; color: #475569; letter-spacing: 5px; margin-bottom: 10px;">SYSTEM READY</div>
-                    <div id="rpm-display" class="rpm-val">1050</div>
-                    <div class="rpm-unit">RPM</div>
+            <div class="tacho-container">
+                <img src="tacho_on.png" alt="Tacómetro" class="tacho-bg">
+                
+                <!-- Aguja central brillante -->
+                <div class="cyber-needle-container" id="tacho-needle">
+                    <div class="cyber-needle"></div>
+                    <div class="needle-center"></div>
+                </div>
+
+                <!-- Display Digital Central -->
+                <div class="rpm-group">
+                    <div class="cyber-rpm-display">
+                        <span id="rpm-val">0</span>
+                    </div>
+                    <span class="cyber-rpm-label">RPM</span>
                 </div>
             </div>
         </div>
 
-        <!-- PANEL DERECHO DATOS -->
-        <div class="side-panel">
-            <div class="premium-card" style="text-align: left;">
-                <div class="card-title">Datos Técnicos</div>
-                <div class="tech-data">
-                    <div class="tech-item">
-                        <div class="tech-label">Patrón</div>
-                        <div class="tech-val">60-2</div>
-                    </div>
-                    <div class="tech-item">
-                        <div class="tech-label">Salida CKP</div>
-                        <div class="tech-val">GPIO 4</div>
-                    </div>
-                    <div class="tech-item">
-                        <div class="tech-label">Engine</div>
-                        <div class="tech-val">GPIO 18</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="premium-card">
-                <div class="card-title" style="margin-bottom: 10px;">System Log</div>
-                <div id="log-console" style="font-family: monospace; font-size: 0.6rem; text-align: left; height: 150px; overflow-y: auto; color: #00ff88;">
-                    [CORE] READY...
-                </div>
-            </div>
+        <!-- CONTENEDOR VACÍO DE EQUILIBRIO (DERECHA) -->
+        <div class="side-panel right-panel">
+            <!-- Vacío para equilibrar el flexbox y centrar perfectamente el tacómetro -->
         </div>
+
     </div>
 
     <script src="app.js"></script>
