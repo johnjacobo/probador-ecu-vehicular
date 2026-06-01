@@ -4,16 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro-ECU Simulator</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
     
+    <!-- INTERRUPTOR DE TEMA (MODO DÍA/NOCHE) - ESQUINA SUPERIOR DERECHA -->
+    <div class="theme-switch-wrapper">
+        <input type="checkbox" id="theme-toggle-checkbox" class="theme-checkbox-hidden">
+        <span class="switch-icon sun-icon">☀️</span>
+        <label for="theme-toggle-checkbox" class="theme-switch">
+            <span class="slider round"></span>
+        </label>
+        <span class="switch-icon moon-icon">🌙</span>
+    </div>
+
     <!-- CONTENEDOR PRINCIPAL (Rectángulo Horizontal) -->
     <div class="connection-bar" id="connection-bar">
         <div class="status-indicator" id="status-indicator"></div>
         <div class="bar-content">
             <span id="status-msg" class="status-text">SISTEMA DESCONECTADO</span>
-            <button id="main-action-btn" class="action-btn">ESCANEAR</button>
+            <div class="header-actions">
+                <button id="main-action-btn" class="action-btn">ESCANEAR</button>
+            </div>
         </div>
         <!-- Capa de animación interior (oculta por defecto) -->
         <div class="energy-wave" id="energy-wave"></div>
@@ -27,7 +39,7 @@
             <!-- CONTROLES DE MOTOR (ACELERADOR VERTICAL) -->
             <div class="engine-controls">
                 <div class="slider-vertical-wrapper">
-                    <input type="range" id="rpm-slider" min="0" max="8000" value="0" step="50" class="neon-slider">
+                    <input type="range" id="rpm-slider" min="0" max="8000" value="0" step="50" class="neon-slider" disabled>
                 </div>
                 <div class="slider-icon icon-rocket">🚀</div>
             </div>
@@ -72,6 +84,25 @@
                         <div class="btn-label">AUX 5</div>
                         <div class="btn-desc">DISPONIBLE</div>
                     </button>
+                </div>
+
+                <!-- BOTÓN DE ARRANQUE (START STOP ENGINE) -->
+                <div class="engine-start-panel">
+                    <div class="start-btn-bezel">
+                        <div class="start-btn-chrome-ring">
+                            <button id="engine-start-btn" class="engine-start-btn">
+                                <span class="btn-text btn-text-start">START</span>
+                                <span class="btn-text btn-text-stop">STOP</span>
+                                <span class="btn-text btn-text-engine">ENGINE</span>
+                            </button>
+                        </div>
+                        <div class="bezel-bottom">
+                            <div class="status-led-bar" id="start-btn-led"></div>
+                            <div class="a-off-btn">
+                                <span class="a-off-icon">Ⓐ</span> <span class="a-off-text">OFF</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- PANEL DE SEÑALES CKP FLOTANTE (Acoplado justo debajo) -->
@@ -167,6 +198,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=14"></script>
 </body>
 </html>

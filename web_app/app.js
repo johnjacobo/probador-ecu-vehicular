@@ -37,6 +37,9 @@ const CHAR_UUID    = '01020304-0506-0708-090a-0b0c0d0e0f10';
 
 let device, characteristic;
 let isConnected = false;
+let isEngineActive = false;
+let isCranking = false;
+let rpmInterval = null;
 
 async function onConnect() {
     const statusMsg = get('status-msg');
@@ -51,6 +54,9 @@ async function onConnect() {
             filters: [{ name: 'PRO-ECU-TESTER' }],
             optionalServices: [SERVICE_UUID]
         });
+
+        // Registrar evento de desconexión automática si el dispositivo se apaga o pierde señal
+        device.addEventListener('gattserverdisconnected', onDisconnect);
 
         statusMsg.innerText = "ESTABLECIENDO ENLACE...";
         const server = await device.gatt.connect();
@@ -69,21 +75,35 @@ async function onConnect() {
         get('dashboard-content').classList.remove('disabled-dashboard');
         get('dashboard-content').classList.add('active-dashboard');
 
+        // Inicializar estado del motor apagado (requiere dar START)
+        isEngineActive = false;
+        isCranking = false;
+        rpmSlider.disabled = true;
+        rpmSlider.value = 0;
+        rpmSlider.min = 0;
+        updateTacho(0);
+        const startBezel = document.querySelector('.start-btn-bezel');
+        if (startBezel) {
+            startBezel.classList.remove('engine-active', 'engine-cranking');
+        }
+        get('dashboard-content').classList.remove('engine-on');
+
     } catch (error) {
-        console.error("CONEXIÓN REAL BLE CANCELADA O NO DETECTADA. ACTIVANDO SIMULACIÓN LOCALLY...");
+        console.error("ERROR DE CONEXIÓN BLUETOOTH:", error);
         
-        statusMsg.innerText = "MODO SIMULACIÓN ACTIVADO";
-        mainBtn.innerText = "DESCONECTAR";
+        isConnected = false;
         
-        isConnected = true;
+        // Cambiar estado visual de la barra a desconectado con mensaje de error
+        bar.classList.remove('connected');
+        statusMsg.innerText = "ERROR: DISPOSITIVO NO DETECTADO";
+        mainBtn.innerText = "ESCANEAR";
         
-        // Cambiar estado visual de la barra a conectado (Simulado)
-        bar.classList.add('connected');
+        // Mantener/restaurar dashboard deshabilitado
+        document.body.classList.remove('dashboard-active');
+        get('dashboard-content').classList.remove('active-dashboard');
+        get('dashboard-content').classList.add('disabled-dashboard');
         
-        // Revelar dashboard futuro
-        document.body.classList.add('dashboard-active');
-        get('dashboard-content').classList.remove('disabled-dashboard');
-        get('dashboard-content').classList.add('active-dashboard');
+        alert("No se pudo conectar con el dispositivo. Asegúrate de que el PRO-ECU-TESTER esté encendido y que el Bluetooth esté activo en tu equipo.");
     }
 }
 
@@ -106,6 +126,20 @@ function onDisconnect() {
     document.body.classList.remove('dashboard-active');
     get('dashboard-content').classList.remove('active-dashboard');
     get('dashboard-content').classList.add('disabled-dashboard');
+
+    // Restablecer estado del motor
+    isEngineActive = false;
+    isCranking = false;
+    if (rpmInterval) clearInterval(rpmInterval);
+    rpmSlider.disabled = true;
+    rpmSlider.value = 0;
+    rpmSlider.min = 0;
+    updateTacho(0);
+    const startBezel = document.querySelector('.start-btn-bezel');
+    if (startBezel) {
+        startBezel.classList.remove('engine-active', 'engine-cranking');
+    }
+    get('dashboard-content').classList.remove('engine-on');
 }
 
 get('main-action-btn').onclick = () => {
@@ -146,14 +180,25 @@ function updateTacho(rpm) {
         dashboard.classList.remove('danger-zone');
     }
     
-    // Hacer titilar el LED del botón activo si RPM > 0
+    // Hacer titilar el LED del botón activo si RPM > 0 y el motor está encendido/arrancando
     const activeBtn = document.querySelector('.cyber-btn.active');
     if (activeBtn) {
-        if (rpm > 0) {
+        if (rpm > 0 && (isEngineActive || isCranking)) {
             activeBtn.classList.add('running');
-            // Calcular velocidad de parpadeo (entre 0.6s para baja velocidad y 0.04s para 8000 RPM)
-            const speed = Math.max(0.04, 0.6 - (percentage * 0.56));
-            activeBtn.style.setProperty('--blink-speed', `${speed}s`);
+            // Calcular velocidad de parpadeo (entre 0.6s para ralentí y 0.04s para 8000 RPM)
+            const blinkSpeed = Math.max(0.04, 0.6 - (percentage * 0.56));
+            activeBtn.style.setProperty('--blink-speed', `${blinkSpeed}s`);
+            
+            // Ajustar dinámicamente la velocidad de animación de los iconos según RPM
+            const spinSpeed = Math.max(0.15, 3.0 - (percentage * 2.85));
+            const pulseSpeed = Math.max(0.15, 1.0 - (percentage * 0.85));
+            const wiggleSpeed = Math.max(0.08, 0.5 - (percentage * 0.42));
+            const floatSpeed = Math.max(0.3, 2.0 - (percentage * 1.7));
+            
+            activeBtn.style.setProperty('--spin-speed', `${spinSpeed}s`);
+            activeBtn.style.setProperty('--pulse-speed', `${pulseSpeed}s`);
+            activeBtn.style.setProperty('--wiggle-speed', `${wiggleSpeed}s`);
+            activeBtn.style.setProperty('--float-speed', `${floatSpeed}s`);
         } else {
             activeBtn.classList.remove('running');
         }
@@ -211,7 +256,11 @@ async function sendState() {
 
 // Evento al mover el slider
 rpmSlider.addEventListener('input', (e) => {
-    const rpm = parseInt(e.target.value);
+    let rpm = parseInt(e.target.value);
+    if (isEngineActive && rpm < 900) {
+        rpm = 900;
+        rpmSlider.value = 900;
+    }
     updateTacho(rpm);
     sendState(); // Transmite el nuevo estado
 });
@@ -475,13 +524,23 @@ signalBtns.forEach(btn => {
         currentSignal = btn.getAttribute('data-signal');
         console.log("Señal seleccionada:", currentSignal);
         
-        // Si el motor está encendido, el nuevo botón activo debe empezar a parpadear inmediatamente
+        // Si el motor está encendido, el nuevo botón activo debe empezar a parpadear e iniciar animación inmediatamente
         const rpm = parseInt(rpmSlider.value);
-        if (rpm > 0) {
+        if (rpm > 0 && (isEngineActive || isCranking)) {
             btn.classList.add('running');
             const percentage = rpm / MAX_RPM;
-            const speed = Math.max(0.04, 0.6 - (percentage * 0.56));
-            btn.style.setProperty('--blink-speed', `${speed}s`);
+            const blinkSpeed = Math.max(0.04, 0.6 - (percentage * 0.56));
+            btn.style.setProperty('--blink-speed', `${blinkSpeed}s`);
+            
+            const spinSpeed = Math.max(0.15, 3.0 - (percentage * 2.85));
+            const pulseSpeed = Math.max(0.15, 1.0 - (percentage * 0.85));
+            const wiggleSpeed = Math.max(0.08, 0.5 - (percentage * 0.42));
+            const floatSpeed = Math.max(0.3, 2.0 - (percentage * 1.7));
+            
+            btn.style.setProperty('--spin-speed', `${spinSpeed}s`);
+            btn.style.setProperty('--pulse-speed', `${pulseSpeed}s`);
+            btn.style.setProperty('--wiggle-speed', `${wiggleSpeed}s`);
+            btn.style.setProperty('--float-speed', `${floatSpeed}s`);
         }
         
         if (currentSignal === 'ckp') {
@@ -502,4 +561,163 @@ const initialCkpBtn = document.querySelector('[data-signal="ckp"]');
 if (initialCkpBtn && initialActiveSig) {
     const descEl = initialCkpBtn.querySelector('.btn-desc');
     if (descEl) descEl.innerText = initialActiveSig.name;
+}
+
+/* ========================================================
+   LÓGICA DEL TEMA (MODO CLARO/OSCURO)
+   ======================================================== */
+const themeCheckbox = get('theme-toggle-checkbox');
+const currentTheme = localStorage.getItem('theme') || 'dark';
+
+if (currentTheme === 'light') {
+    document.body.classList.add('light-mode');
+    if (themeCheckbox) themeCheckbox.checked = false;
+} else {
+    document.body.classList.remove('light-mode');
+    if (themeCheckbox) themeCheckbox.checked = true;
+}
+
+if (themeCheckbox) {
+    themeCheckbox.addEventListener('change', () => {
+        if (themeCheckbox.checked) {
+            document.body.classList.remove('light-mode');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.body.classList.add('light-mode');
+            localStorage.setItem('theme', 'light');
+        }
+    });
+
+    // Permitir hacer clic directo en los iconos de Sol/Luna para alternar el tema
+    const sunIcon = document.querySelector('.theme-switch-wrapper .sun-icon');
+    const moonIcon = document.querySelector('.theme-switch-wrapper .moon-icon');
+
+    if (sunIcon) {
+        sunIcon.addEventListener('click', () => {
+            if (themeCheckbox.checked) {
+                themeCheckbox.checked = false;
+                themeCheckbox.dispatchEvent(new Event('change'));
+            }
+        });
+    }
+
+    if (moonIcon) {
+        moonIcon.addEventListener('click', () => {
+            if (!themeCheckbox.checked) {
+                themeCheckbox.checked = true;
+                themeCheckbox.dispatchEvent(new Event('change'));
+            }
+        });
+    }
+}
+
+/* ========================================================
+   LÓGICA DE CONTROL DEL MOTOR (START STOP ENGINE)
+   ======================================================== */
+const startBtn = get('engine-start-btn');
+const startBezel = document.querySelector('.start-btn-bezel');
+
+function setEngineRPM(targetRpm, duration, onComplete) {
+    if (rpmInterval) clearInterval(rpmInterval);
+    const startRpm = parseInt(rpmSlider.value);
+    const startTime = performance.now();
+
+    rpmInterval = setInterval(() => {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing suave (out quad)
+        const current = Math.round(startRpm + (targetRpm - startRpm) * progress);
+        
+        rpmSlider.value = current;
+        
+        // Si está en modo cranking (arranque), añadimos una pequeña oscilación a la aguja
+        if (isCranking) {
+            rpmVal.innerText = current;
+            const percentage = current / MAX_RPM;
+            const baseDegree = MIN_DEG + (percentage * (MAX_DEG - MIN_DEG));
+            const vibrationOffset = Math.random() * 4 - 2; // +/- 2 grados de vibración
+            tachoNeedle.style.transform = `rotate(${baseDegree + vibrationOffset}deg)`;
+            
+            // Efecto visual: Zona Roja (> 4000 RPM)
+            const dashboard = get('dashboard-content');
+            if (current > 4000) {
+                dashboard.classList.add('danger-zone');
+            } else {
+                dashboard.classList.remove('danger-zone');
+            }
+        } else {
+            updateTacho(current);
+        }
+        
+        sendState();
+
+        if (progress === 1) {
+            clearInterval(rpmInterval);
+            if (onComplete) onComplete();
+        }
+    }, 20); // 50 FPS para suavidad extrema
+}
+
+function startEngine() {
+    if (isCranking || isEngineActive) return;
+    isCranking = true;
+    
+    // Deshabilitar control del acelerador mientras arranca
+    rpmSlider.disabled = true;
+    
+    // Activar vibración en el botón físico por CSS
+    if (startBezel) startBezel.classList.add('engine-cranking');
+    get('dashboard-content').classList.add('engine-on');
+    
+    // 1. Fase Cranking: RPM sube a 250 (velocidad del motor de arranque) en 450ms
+    setEngineRPM(250, 450, () => {
+        // Breve retraso simulando la compresión inicial
+        setTimeout(() => {
+            // El motor arranca con éxito!
+            isCranking = false;
+            isEngineActive = true;
+            
+            if (startBezel) {
+                startBezel.classList.remove('engine-cranking');
+                startBezel.classList.add('engine-active');
+            }
+            
+            // Habilitar acelerador
+            rpmSlider.disabled = false;
+            
+            // 2. Fase Ralentí: Sube suavemente a 900 RPM en 500ms
+            setEngineRPM(900, 500);
+        }, 120);
+    });
+}
+
+function stopEngine() {
+    if (isCranking) return; // Evitar apagar mientras arranca
+    isEngineActive = false;
+    
+    if (startBezel) {
+        startBezel.classList.remove('engine-active');
+    }
+    get('dashboard-content').classList.remove('engine-on');
+    
+    // Detener inmediatamente el parpadeo del botón de señal activo
+    const activeBtn = document.querySelector('.cyber-btn.active');
+    if (activeBtn) activeBtn.classList.remove('running');
+    
+    // Deshabilitar acelerador y permitir que el slider baje a 0 RPM
+    rpmSlider.disabled = true;
+    
+    // El motor se apaga y cae suavemente a 0 RPM
+    setEngineRPM(0, 600);
+}
+
+if (startBtn) {
+    startBtn.addEventListener('click', () => {
+        if (!isEngineActive) {
+            startEngine();
+        } else {
+            stopEngine();
+        }
+    });
 }

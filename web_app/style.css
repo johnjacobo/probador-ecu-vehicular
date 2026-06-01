@@ -96,6 +96,148 @@ body.dashboard-active {
     text-shadow: 0 0 10px rgba(255,255,255,0.3);
 }
 
+/* Contenedor de Botones Superiores */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* ========================================================
+   CONTENEDOR DEL INTERRUPTOR DE TEMA (ESQUINA SUPERIOR DERECHA)
+   ======================================================== */
+.theme-switch-wrapper {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+    background: rgba(10, 15, 26, 0.6);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 242, 255, 0.15);
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.theme-switch-wrapper:hover {
+    border-color: rgba(0, 242, 255, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 242, 255, 0.2);
+}
+
+/* El interruptor (switch) */
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+}
+
+/* El slider (pista) */
+.theme-switch .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #1e293b;
+    transition: .4s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* El círculo deslizante (knob) */
+.theme-switch .slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--primary-neon);
+    transition: .4s;
+    box-shadow: 0 0 8px var(--primary-neon);
+}
+
+/* Redondear slider y knob */
+.theme-switch .slider.round {
+    border-radius: 22px;
+}
+
+.theme-switch .slider.round:before {
+    border-radius: 50%;
+}
+
+/* ESTADOS POR DEFECTO DEL CHECKBOX DIRECTO (DÍA/NOCHE) */
+
+/* 1. MODO OSCURO / NOCHE (Checkbox Marcado) */
+#theme-toggle-checkbox:checked ~ .theme-switch .slider {
+    background-color: #050b14;
+    border-color: rgba(0, 242, 255, 0.3);
+}
+
+#theme-toggle-checkbox:checked ~ .theme-switch .slider:before {
+    transform: translateX(24px);
+    background-color: var(--primary-neon);
+    box-shadow: 0 0 10px var(--primary-neon);
+}
+
+#theme-toggle-checkbox:checked ~ .switch-icon.moon-icon {
+    opacity: 1;
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+}
+
+#theme-toggle-checkbox:checked ~ .switch-icon.sun-icon {
+    opacity: 0.3;
+    transform: scale(0.9);
+    filter: none;
+}
+
+/* 2. MODO CLARO / DÍA (Checkbox Desmarcado) */
+#theme-toggle-checkbox:not(:checked) ~ .theme-switch .slider {
+    background-color: #e2e8f0;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+#theme-toggle-checkbox:not(:checked) ~ .theme-switch .slider:before {
+    transform: translateX(0px);
+    background-color: #ff9f00;
+    box-shadow: 0 0 10px #ff9f00;
+}
+
+#theme-toggle-checkbox:not(:checked) ~ .switch-icon.sun-icon {
+    opacity: 1;
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 8px #ffaa00);
+}
+
+#theme-toggle-checkbox:not(:checked) ~ .switch-icon.moon-icon {
+    opacity: 0.3;
+    transform: scale(0.9);
+    filter: none;
+}
+
+/* Iconos de sol y luna comunes */
+.switch-icon {
+    font-size: 0.95rem;
+    user-select: none;
+    transition: transform 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
+    cursor: pointer;
+}
+
+/* Ocultar checkbox de manera accesible para que funcione el click-to-label en todos los navegadores */
+.theme-checkbox-hidden {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
 /* Botón de Acción */
 .action-btn {
     background: rgba(0, 242, 255, 0.1);
@@ -347,7 +489,7 @@ body.dashboard-active {
     width: 80px; /* Forzamos a que sea un panel delgado */
     border: 1px solid rgba(0, 242, 255, 0.15);
     border-radius: 25px;
-    background: linear-gradient(145deg, rgba(2, 6, 23, 0.6) 0%, rgba(0, 10, 30, 0.2) 100%);
+    background: rgba(30, 41, 59, 0.4);
     box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.02), 0 15px 35px rgba(0,0,0,0.6);
     backdrop-filter: blur(5px);
     height: 540px; /* Alargado verticalmente de 480px a 540px */
@@ -375,7 +517,7 @@ body.dashboard-active {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-4px); }
 }
-.icon-rocket {
+.active-dashboard .icon-rocket {
     animation: rocket-float 2s ease-in-out infinite;
 }
 
@@ -466,11 +608,11 @@ body.dashboard-active {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start; /* Empuja el título y los botones hacia el límite superior */
-    padding: 25px 10px; /* Reducido ligeramente arriba para que queden más al borde superior */
-    width: 190px; /* Más pequeño */
+    padding: 20px 10px 0 10px;
+    width: 180px; /* Más compacto para botones cuadrados elegantes */
     border: 1px solid rgba(0, 242, 255, 0.15);
     border-radius: 25px;
-    background: linear-gradient(145deg, rgba(2, 6, 23, 0.6) 0%, rgba(0, 10, 30, 0.2) 100%);
+    background: rgba(30, 41, 59, 0.4);
     box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.02), 0 15px 35px rgba(0,0,0,0.6);
     backdrop-filter: blur(5px);
     height: 540px; /* Alargado verticalmente a 540px */
@@ -490,25 +632,27 @@ body.dashboard-active {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr; /* 3 filas */
-    gap: 10px; /* Ligeramente más compacto */
+    gap: 8px; /* Ligeramente más compacto */
     width: 100%;
-    height: 220px; /* Reducido de 340px a 220px para restaurar el tamaño mini original */
+    height: auto; /* El alto se adaptará a los botones perfectamente cuadrados */
 }
 
 .cyber-btn {
     position: relative;
     background: rgba(30, 41, 59, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+    border-radius: 8px; /* Reducido de 10px a 8px */
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 5px; /* Súper ajustado */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    padding: 4px; /* Un poco más compacto */
+    box-shadow: 0 3px 6px rgba(0,0,0,0.5);
     overflow: hidden;
+    aspect-ratio: 1 / 1; /* Forza a que los botones sean cuadrados perfectos */
+    width: 100%;
 }
 
 .cyber-btn:hover {
@@ -537,12 +681,18 @@ body.dashboard-active {
 }
 
 .cyber-btn.active .led-dot {
+    background: #64748b;
+    box-shadow: none;
+}
+
+/* Solo cuando el motor está encendido (engine-on) el LED activo brilla en verde */
+.engine-on .cyber-btn.active .led-dot {
     background: #00ff88;
     box-shadow: 0 0 6px #00ff88, 0 0 12px #00ff88;
 }
 
-/* LED Rojo en Zona de Peligro */
-.danger-zone .cyber-btn.active .led-dot {
+/* LED Rojo en Zona de Peligro (solo con motor encendido) */
+.engine-on.danger-zone .cyber-btn.active .led-dot {
     background: #ff003c;
     box-shadow: 0 0 6px #ff003c, 0 0 12px #ff003c;
 }
@@ -584,13 +734,13 @@ body.dashboard-active {
 
 /* Etiqueta debajo del ícono reducida */
 .btn-label {
-    font-size: 0.7rem; /* Reducido sustancialmente */
+    font-size: 0.65rem; /* Reducido de 0.7rem a 0.65rem */
     color: #cbd5e1;
     font-weight: 700;
     font-family: 'Rajdhani', sans-serif;
     letter-spacing: 1px;
-    margin-top: 3px;
-    margin-bottom: 1px;
+    margin-top: 2px;
+    margin-bottom: 0px;
     transition: 0.3s all;
 }
 
@@ -601,7 +751,7 @@ body.dashboard-active {
 
 /* Ícono central súper compacto */
 .btn-icon {
-    font-size: 1.3rem; /* Más pequeño */
+    font-size: 1.15rem; /* Reducido de 1.3rem a 1.15rem */
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
     transition: 0.3s all;
     opacity: 0.6;
@@ -615,7 +765,7 @@ body.dashboard-active {
 
 /* Descripción inferior (BOSCH 60-2...) */
 .btn-desc {
-    font-size: 0.52rem; /* Más pequeño para botones súper reducidos */
+    font-size: 0.5rem; /* Reducido de 0.52rem a 0.5rem */
     color: #475569;
     font-weight: 700;
     letter-spacing: 1px;
@@ -624,32 +774,49 @@ body.dashboard-active {
 }
 
 .cyber-btn.active .btn-desc {
+    color: #64748b;
+    text-shadow: none;
+}
+
+.engine-on .cyber-btn.active .btn-desc {
     color: #00ff88;
     text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
 }
 
-/* ANIMACIONES DE LOS ÍCONOS */
+/* ANIMACIONES DE LOS ÍCONOS (SOLO CUANDO EL MOTOR ESTÁ ACTIVO O SE HACE HOVER) */
 @keyframes spin { 100% { transform: rotate(360deg); } }
-.cyber-btn.active .icon-spin, .cyber-btn:hover .icon-spin { animation: spin 3s linear infinite; }
+.engine-on .cyber-btn.active .icon-spin, 
+.active-dashboard .cyber-btn:hover .icon-spin { 
+    animation: spin var(--spin-speed, 3s) linear infinite; 
+}
 
 @keyframes pulse-icon {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.2) translateY(-2px); }
 }
-.cyber-btn.active .icon-pulse, .cyber-btn:hover .icon-pulse { animation: pulse-icon 1s ease-in-out infinite; }
+.engine-on .cyber-btn.active .icon-pulse, 
+.active-dashboard .cyber-btn:hover .icon-pulse { 
+    animation: pulse-icon var(--pulse-speed, 1s) ease-in-out infinite; 
+}
 
 @keyframes wiggle {
     0%, 100% { transform: rotate(0deg); }
     25% { transform: rotate(-15deg); }
     75% { transform: rotate(15deg); }
 }
-.cyber-btn.active .icon-wiggle, .cyber-btn:hover .icon-wiggle { animation: wiggle 0.5s ease-in-out infinite; }
+.engine-on .cyber-btn.active .icon-wiggle, 
+.active-dashboard .cyber-btn:hover .icon-wiggle { 
+    animation: wiggle var(--wiggle-speed, 0.5s) ease-in-out infinite; 
+}
 
 @keyframes float-icon {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-5px); }
 }
-.cyber-btn.active .icon-float, .cyber-btn:hover .icon-float { animation: float-icon 2s ease-in-out infinite; }
+.engine-on .cyber-btn.active .icon-float, 
+.active-dashboard .cyber-btn:hover .icon-float { 
+    animation: float-icon var(--float-speed, 2s) ease-in-out infinite; 
+}
 
 
 /* Efecto de barrido al hacer hover */
@@ -1157,4 +1324,350 @@ body.dashboard-active {
     border-color: #ff003c;
     box-shadow: 0 0 15px rgba(255, 0, 60, 0.6);
 }
+
+/* ========================================================
+   MODO CLARO (LIGHT MODE) OVERRIDES
+   ======================================================== */
+body.light-mode {
+    --bg-dark: #f0f4f8;
+    --text-color: #1e293b;
+    --bar-bg: rgba(255, 255, 255, 0.85);
+}
+
+/* Ajustes generales para texto y sombras en modo claro */
+body.light-mode .status-text {
+    color: #475569;
+}
+body.light-mode .connection-bar.connected .status-text {
+    color: #0f172a;
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+}
+
+/* Interruptor de Tema en Modo Claro */
+body.light-mode .theme-switch-wrapper {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(0, 150, 200, 0.2);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+body.light-mode .theme-switch-wrapper:hover {
+    border-color: rgba(0, 150, 200, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 150, 200, 0.15);
+}
+
+/* Paneles y Tarjetas (Cyber Botones, Acelerador, Tacho) en modo claro */
+body.light-mode .connection-bar,
+body.light-mode .tacho-wrapper,
+body.light-mode .engine-controls,
+body.light-mode .signal-controls,
+body.light-mode .ckp-floating-panel,
+body.light-mode .cyber-modal-content {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 244, 248, 0.9) 100%);
+    border-color: rgba(0, 150, 200, 0.2);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1), inset 0 0 10px rgba(255,255,255,0.5);
+}
+
+body.light-mode .cyber-btn {
+    background: rgba(240, 244, 248, 0.8);
+    border-color: rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+body.light-mode .cyber-btn:hover {
+    background: #fff;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+}
+body.light-mode .cyber-btn.active {
+    background: rgba(0, 242, 255, 0.15);
+    border-color: rgba(0, 242, 255, 0.4);
+    box-shadow: inset 0 0 10px rgba(0, 242, 255, 0.2), 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Textos e íconos en botones */
+body.light-mode .btn-label,
+body.light-mode .panel-title,
+body.light-mode .panel-header h3,
+body.light-mode .cyber-modal-header h3 {
+    color: #334155;
+    text-shadow: none;
+}
+body.light-mode .cyber-btn.active .btn-label {
+    color: #0f172a;
+    text-shadow: 0 0 6px rgba(0, 242, 255, 0.4);
+}
+body.light-mode .cyber-btn.active .btn-desc {
+    color: #64748b;
+}
+
+body.light-mode .engine-on .cyber-btn.active .btn-desc {
+    color: #059669; /* Verde oscuro para contraste */
+}
+body.light-mode .btn-icon {
+    opacity: 0.8;
+}
+
+/* Tacho central numérico */
+body.light-mode .cyber-rpm-display {
+    background: #fff;
+    border-color: rgba(0, 242, 255, 0.5);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+body.light-mode #rpm-val {
+    color: #0284c7;
+    text-shadow: none;
+}
+
+/* Zona de peligro modo claro */
+body.light-mode .danger-zone .cyber-rpm-display {
+    border-color: rgba(255, 0, 60, 0.6);
+}
+body.light-mode .danger-zone #rpm-val {
+    color: #e11d48;
+}
+body.light-mode .danger-zone .engine-controls,
+body.light-mode .danger-zone .tacho-wrapper .tacho-container::after {
+    border-color: rgba(255, 0, 60, 0.4);
+}
+body.light-mode .engine-on.danger-zone .cyber-btn.active .btn-desc {
+    color: #e11d48;
+}
+
+/* Modal y Scrollbar */
+body.light-mode .close-btn {
+    color: #94a3b8;
+}
+body.light-mode .close-btn:hover {
+    color: #e11d48;
+}
+body.light-mode .panel-subtitle, body.light-mode .cyber-modal-body p {
+    color: #475569;
+}
+body.light-mode .cyber-modal-container {
+    background: rgba(240, 244, 248, 0.8);
+}
+
+/* ========================================================
+   BOTÓN REALISTA START STOP ENGINE
+   ======================================================== */
+.engine-start-panel {
+    margin-top: 25px; /* Cerca de los últimos botones de abajo */
+    margin-bottom: 20px;
+    width: 100%;
+    padding: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top: none;
+    background: transparent;
+    border-radius: 0 0 25px 25px; /* Coincide con el panel de señales */
+    box-shadow: none;
+}
+
+/* El bisel plástico / contenedor del botón */
+.start-btn-bezel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 10px 14px; /* Un poco más compacto */
+    border-radius: 16px; /* Reducido de 20px a 16px */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.8), inset 0 1px 3px rgba(255,255,255,0.05);
+}
+
+/* Anillo exterior que se ilumina (VERDE apagado / ROJO encendido) - Aumentado de tamaño */
+.start-btn-chrome-ring {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    /* Verde por defecto (sin prender) */
+    background: linear-gradient(135deg, 
+        #00ff88 0%, 
+        #004d26 40%, 
+        #00ff88 50%, 
+        #003318 65%, 
+        #00ff88 100%);
+    padding: 4px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 12px rgba(0, 255, 136, 0.4), inset 0 1px 2px rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+
+.engine-active .start-btn-chrome-ring {
+    /* Rojo cuando está prendido */
+    background: linear-gradient(135deg, 
+        #ff3333 0%, 
+        #660000 40%, 
+        #ff3333 50%, 
+        #4d0000 65%, 
+        #ff3333 100%);
+    box-shadow: 0 0 15px rgba(255, 51, 51, 0.7), inset 0 1px 2px rgba(255,255,255,0.3);
+}
+
+/* El botón circular negro */
+.engine-start-btn {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #2d2d2d 0%, #121212 90%, #080808 100%);
+    border: 1px solid #000;
+    color: #e0e0e0;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+    user-select: none;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15), 
+                inset 0 -2px 6px rgba(0, 0, 0, 0.8),
+                0 2px 4px rgba(0, 0, 0, 0.4);
+    transition: all 0.15s ease;
+    outline: none;
+    padding: 0;
+}
+
+.engine-start-btn:active {
+    transform: scale(0.96);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.9);
+}
+
+.engine-start-btn .btn-text {
+    display: block;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.btn-text-start {
+    font-size: 0.88rem;
+    letter-spacing: 0.5px;
+}
+
+.btn-text-stop {
+    font-size: 0.88rem;
+    letter-spacing: 0.5px;
+    margin: 2px 0;
+}
+
+.btn-text-engine {
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    color: #888;
+}
+
+/* Sección inferior del bisel */
+.bezel-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 8px;
+    width: 100%;
+}
+
+/* Línea indicadora LED - Aumentada */
+.status-led-bar {
+    width: 32px;
+    height: 3.5px;
+    background-color: #475569; /* LED apagado: gris */
+    border-radius: 2px;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Decorativo botón "A OFF" */
+.a-off-btn {
+    margin-top: 6px;
+    font-size: 0.55rem;
+    color: #444;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    user-select: none;
+}
+
+.a-off-icon {
+    font-size: 0.65rem;
+    border: 1px solid #333;
+    border-radius: 50%;
+    width: 9px;
+    height: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* ========================================================
+   ESTADOS DE ENCENDIDO (MOTOR ACTIVO)
+   ======================================================== */
+.engine-active .status-led-bar {
+    background-color: #ff3333; /* LED encendido: rojo brillante */
+    box-shadow: 0 0 8px #ff3333, 0 0 15px #ff3333;
+}
+
+.engine-active .engine-start-btn .btn-text-start,
+.engine-active .engine-start-btn .btn-text-stop {
+    color: #fff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+}
+
+.engine-active .engine-start-btn .btn-text-engine {
+    color: #ccc;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+}
+
+/* Animación de vibración durante arranque (cranking) */
+@keyframes button-vibrate {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-0.5px, 0.5px); }
+    40% { transform: translate(0.5px, -0.5px); }
+    60% { transform: translate(-0.5px, -0.5px); }
+    80% { transform: translate(0.5px, 0.5px); }
+}
+
+.engine-cranking {
+    animation: button-vibrate 0.08s infinite;
+}
+
+/* ========================================================
+   MODO CLARO (LIGHT MODE) OVERRIDES PARA EL BOTÓN
+   ======================================================== */
+body.light-mode .engine-start-panel {
+    background: transparent;
+    border-top-color: transparent;
+    box-shadow: none;
+}
+
+body.light-mode .start-btn-bezel {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05), inset 0 1px 3px rgba(255,255,255,0.6);
+}
+
+body.light-mode .start-btn-chrome-ring {
+    /* Mantenemos el efecto verde/rojo pero suavizamos las sombras del brillo para el fondo claro */
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.3), inset 0 1px 2px rgba(255,255,255,0.5);
+}
+
+body.light-mode .engine-active .start-btn-chrome-ring {
+    box-shadow: 0 0 12px rgba(255, 51, 51, 0.5), inset 0 1px 2px rgba(255,255,255,0.5);
+}
+
+body.light-mode .engine-start-btn {
+    background: radial-gradient(circle, #444 0%, #202020 90%, #151515 100%);
+}
+
+body.light-mode .a-off-btn {
+    color: #777;
+}
+
+body.light-mode .a-off-icon {
+    border-color: #999;
+}
+
 
